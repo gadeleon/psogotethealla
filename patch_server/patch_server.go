@@ -21,8 +21,6 @@ import (
 	"errors"
 	"log"
 	"net"
-
-	"github.com/gadeleon/psogotethealla/config"
 )
 
 type PatchServer interface {
@@ -67,18 +65,18 @@ func send_to_server(sock int, packet []byte) error {
 
 // Parses IP from config file, if it can't parse
 // then it grabs IPv4 from net.LookupIP
-func convertIPString(c *config.Config) (net.IP, error) {
-	ip := c.Config.Section("ship").Key("server").String()
-	log.Printf("Pulled '%s' from config file\n", ip)
+func parseIPString(ip string) (net.IP, error) {
+	log.Printf("Using '%s' for IP/Host\n", ip)
 	if ip == "" {
-		return nil, errors.New("Unable to get IP from config")
+		return nil, errors.New("IP/Host provided is blank")
 	}
 	// Parse IP Address
 	// If addr is nil, lookup the IPv4
 	addr := net.ParseIP(ip)
 	if addr == nil {
+		log.Println("Provided string is likely a hostname, looking up...")
 		lookup, err := net.LookupIP(ip)
-		log.Println("[patchserver] IP lookup produced these IPS:", lookup)
+		log.Println("IP lookup produced these IPS:", lookup)
 		if err != nil {
 			log.Println(err)
 			return nil, err
