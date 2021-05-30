@@ -50,6 +50,31 @@ type CryptSetup struct {
 	pcPosn uint32       //
 }
 
+// Struct for patch data
+type PatchData struct {
+	fileSize, checksum uint32
+	// fullFileName includes absolute path
+	fullFileName string
+	// OG C has fileName as an [48]int8,
+	// will take a small chance and make
+	// this a string
+	// int8_t file_name[48];
+	fileName string
+	// OG C has this PATH_MAX which is not
+	// needed... I think. Setting to string
+	// instead of [PATH_MAX]int8
+	folder string
+	// OG C has this as Command to get to the folder this file resides in...
+	// Not sure if necessary in Go. Will use a string for now instead
+	// of [128]uint8
+	patchFolders     string
+	patchFoldersSize uint32
+	// patch_steps in C: "How many steps from the root folder this file is..."
+	// Level counter of sorts then. uint32, may change to int later
+	// TODO: keep as uint32 or change to int
+	patchSteps uint32
+}
+
 // Data structure of client
 type ClientData struct {
 	fileSize, checksum uint32
