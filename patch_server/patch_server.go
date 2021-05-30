@@ -20,6 +20,9 @@ package patchserver
 import (
 	"errors"
 	"log"
+	"net"
+
+	"github.com/gadeleon/psogotethealla/config"
 )
 
 type PatchServer interface {
@@ -56,4 +59,35 @@ func send_to_server(sock int, packet []byte) error {
 	err := errors.New("send_to_server(): failure")
 	log.Print(err)
 	return err
+}
+
+// convert string of IP to ...something
+// In the C code, serverIP is an array of 4 integers ([4]int in Go)
+// I don't know if I need to recreate that, but we'll see.
+
+// Parses IP from config file, if it can't parse
+// then it grabs IPv4 from net.LookupIP
+func convertIPString(c *config.Config) (net.IP, error) {
+	ip := c.Config.Section("ship").Key("server").String()
+	log.Printf("Pulled '%s' from config file\n", ip)
+	if ip == "" {
+		return nil, errors.New("Unable to get IP from config")
+	}
+	// Parse IP Address
+	// If addr is nil, lookup the IPv4
+	addr := net.ParseIP(ip)
+	if addr == nil {
+		lookup, err := net.LookupIP(ip)
+		log.Println("[patchserver] IP lookup produced these IPS:", lookup)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		for _, ipv4 := range lookup {
+			if ipv4.To4() != nil {
+				addr = ipv4
+			}
+		}
+	}
+	return addr, nil
 }
