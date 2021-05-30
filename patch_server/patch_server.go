@@ -38,6 +38,7 @@ const (
 	MAX_SENDCHECK                  = 0x04
 	TCP_BUFFER_SIZE                = 65530
 	SOCKET_ERROR                   = -1
+	MAX_SIMULTANEOUS_CONNECTIONS   = 6
 )
 
 // "Encyption Data Struct"
@@ -88,4 +89,9 @@ func parseIPString(ip string) (net.IP, error) {
 		}
 	}
 	return addr, nil
+}
+
+// Simple func to convert int of bytes into KB
+func bytesToKB(bytes int) int {
+	return bytes * 1024
 }
