@@ -8,6 +8,10 @@ import (
 )
 
 func TestConfig_New(t *testing.T) {
+	iFile, _ := ini.Load("example.ini")
+	validConfig := Config{
+		Config: iFile,
+	}
 	type fields struct {
 		Config *ini.File
 	}
@@ -23,6 +27,7 @@ func TestConfig_New(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"Failed to Load", fields{}, args{"no.ini"}, nil, true},
+		{"Load Example", fields{}, args{"example.ini"}, &validConfig, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
