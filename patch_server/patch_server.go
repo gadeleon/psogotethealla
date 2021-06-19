@@ -21,11 +21,9 @@ import (
 	"errors"
 	"log"
 	"net"
-)
 
-type PatchServer interface {
-	Serve()
-}
+	"github.com/gadeleon/psogotethealla/client"
+)
 
 const (
 	MAX_PATCHES                    = 4096
@@ -41,21 +39,86 @@ const (
 	MAX_SIMULTANEOUS_CONNECTIONS   = 6
 )
 
+type PatchServer interface {
+	Serve()
+}
+
 // "Encyption Data Struct"
-// Scaffolding for communication with PSO client...?
+// TODO: Find out on what this actually does
 type CryptSetup struct {
-	keys    [1024]uint32 //encryption stream
-	pc_posn uint32       //
+	keys   [1024]uint32 //encryption stream
+	pcPosn uint32       //
+}
+
+// Struct for patch data
+type PatchData struct {
+	fileSize, checksum uint32
+	// fullFileName includes absolute path
+	fullFileName string
+	// OG C has fileName as an [48]int8,
+	// will take a small chance and make
+	// this a string
+	// int8_t file_name[48];
+	fileName string
+	// OG C has this PATH_MAX which is not
+	// needed... I think. Setting to string
+	// instead of [PATH_MAX]int8
+	folder string
+	// OG C has this as Command to get to the folder this file resides in...
+	// Not sure if necessary in Go. Will use a string for now instead
+	// of [128]uint8
+	patchFolders     string
+	patchFoldersSize uint32
+	// patch_steps in C: "How many steps from the root folder this file is..."
+	// Level counter of sorts then. uint32, may change to int later
+	// TODO: keep as uint32 or change to int
+	patchSteps uint32
+}
+
+// Data structure of client
+type ClientData struct {
+	fileSize, checksum uint32
+}
+
+// Extension of Core client for patch server
+type PatchClient struct {
+	Core    *client.CoreClient
+	patch   int32
+	peekbuf [8]uint8 // kill for golang?
+	//  uint8_t rcvbuf [TCP_BUFFER_SIZE] is used in C, is this the same?
+	// kill packet buffers for golang?
+	rcvbuf, decryptbuf, sndbuf, encryptbuf, packet [TCP_BUFFER_SIZE]uint8
+	// PacketData/PacketRead... are these server or client?
+	packetData, packetRead                         uint16
+	serverCipher, clientCipher                     CryptSetup
+	pData                                          [MAX_PATCHES]ClientData
+	sendingFiles                                   int32
+	filesToSend, bytesToSend                       uint32
+	sData                                          [MAX_PATCHES]uint32
+	username                                       [17]int8
+	currentFile, cFileIndex                        uint32
+	lastTick, toBytesSec, fromBytesSec, packetsSec uint32
+	sendCheck                                      [MAX_SENDCHECK + 2]uint8
+	// patch_folder in OG C requires PATH_MAX
+	// which is not needed in Go... I think.
+	// Tweaking that value here and we can
+	// use path.Walk to locate
+	// int8_t patch_folder[PATH_MAX];
+	patchFolder string
+	patchSteps  uint32
+	// May change this to net.IP type
+	// Depends on what windows client sends
+	IpAdress [16]uint8
 }
 
 var Crypt_PC_GetNextKey func(c *CryptSetup) uint32
 
-func send_to_server(sock int, packet []byte) error {
+func sendToServer(sock int, packet []byte) error {
 	log.Print("Sending to patch server...")
 	//pktlen := len(packet)
 	// C code sends the message and compares size of response
 	// TODO: Suss out sending messages/socks in GO properly
-	err := errors.New("send_to_server(): failure")
+	err := errors.New("sendToServer(): failure")
 	log.Print(err)
 	return err
 }
