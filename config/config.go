@@ -12,7 +12,7 @@ type Config struct {
 
 func New(fname string) (*Config, error) {
 	iniFile, err := ini.Load(fname)
-	log.Print("[config] loading file: ", fname)
+	log.Print("loading file: ", fname)
 	if err != nil {
 		return nil, err
 	}
