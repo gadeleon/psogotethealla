@@ -31,10 +31,7 @@ func TestConfig_New(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
-				Config: tt.fields.Config,
-			}
-			got, err := c.New(tt.args.fname)
+			got, err := New(tt.args.fname)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Config.New() error = %v, wantErr %v", err, tt.wantErr)
 				return
