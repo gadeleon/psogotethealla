@@ -155,6 +155,6 @@ func parseIPString(ip string) (net.IP, error) {
 }
 
 // Simple func to convert int of bytes into KB
-func BytesToKB(bytes int) int {
+func KBToBytes(bytes int) int {
 	return bytes * 1024
 }

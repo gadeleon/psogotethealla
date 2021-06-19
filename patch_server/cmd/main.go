@@ -42,7 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	maxupbytes := uint32(patchserver.BytesToKB(m))
+	maxupbytes := uint32(patchserver.KBToBytes(m))
 	log.Printf("Max Upload Speed: %sKB/s (%dBytes/s)", cnf.Config.Section("patch_server").Key("maxup").String(), maxupbytes)
 
 	// TODO: Setup Patch Data Folder
