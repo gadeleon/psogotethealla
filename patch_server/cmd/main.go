@@ -49,4 +49,15 @@ func main() {
 	// TODO: Have this folder be a full path in INI?
 	//var ch, ch2 uint32
 
+	log.Print("Setting up patch data")
+	patches := patchserver.NewPatchData(cnf.Config.Section("patch_server").Key("directory").Value())
+	//patches := []patchserver.PatchData{}
+	log.Printf("Created patch struct: %v", patches)
+
+	if len(patches) < 1 {
+		log.Fatal("No patches found. At least one patch to check or send is required.")
+	}
+
+	log.Print("Loading welcome text file")
+
 }
