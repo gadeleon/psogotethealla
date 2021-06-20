@@ -58,6 +58,11 @@ func main() {
 		log.Fatal("No patches found. At least one patch to check or send is required.")
 	}
 
-	log.Print("Loading welcome text file")
+	log.Print("Loading welcome message...")
+	welcome := cnf.Config.Section("login_server").Key("welcome").Value()
+	if welcome == "" {
+		log.Fatal("Welcome message is empty. Yes, this is required...")
+	}
+	log.Print(welcome)
 
 }
