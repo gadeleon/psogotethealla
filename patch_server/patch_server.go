@@ -19,8 +19,10 @@ package patchserver
 
 import (
 	"errors"
+	"io/fs"
 	"log"
 	"net"
+	"path/filepath"
 
 	"github.com/gadeleon/psogotethealla/client"
 )
@@ -73,6 +75,43 @@ type PatchData struct {
 	// Level counter of sorts then. uint32, may change to int later
 	// TODO: keep as uint32 or change to int
 	patchSteps uint32
+}
+
+// Loads specified file path into PatchData struct
+func NewPatchData(path string) (patches []*PatchData) {
+	log.Printf("Looking for patches in directory: %s", path)
+	err := filepath.Walk(path, func(p string, info fs.FileInfo, err error) error {
+		if err != nil {
+			log.Fatal(err)
+		}
+		if !info.IsDir() {
+			fp, _ := filepath.Abs(p)
+			log.Print(fp)
+			patch := &PatchData{
+				fileSize: uint32(info.Size()),
+				//checksum: TODO: Add Checksum,
+				fullFileName: fp,
+				fileName:     info.Name(),
+				// TODO: Is folder just the foldername or full path?
+				// Just folder name
+				//folder:       filepath.Base(filepath.Dir(p)),
+				// full path to folder
+				folder: filepath.Dir(fp),
+				// TODO: Do we need these?
+				// patchFolders: "",
+				// patchFoldersSize: 0,
+				// patchSteps: 0,
+			}
+			patches = append(patches, patch)
+			log.Printf("Patch created: %v", patch)
+
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return patches
 }
 
 // Data structure of client
