@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"log"
+	"net"
 	"os"
 	"strconv"
 
+	core "github.com/gadeleon/psogotethealla/client"
 	"github.com/gadeleon/psogotethealla/config"
 	patchserver "github.com/gadeleon/psogotethealla/patch_server"
 )
@@ -64,5 +68,81 @@ func main() {
 		log.Fatal("Welcome message is empty. Yes, this is required...")
 	}
 	log.Print(welcome)
+
+	// Start Patch Server
+	patchAddr := fmt.Sprintf("%s:%d", cnf.Config.Section("login_server").Key("server").Value(), patchPort)
+	l, err := net.Listen("tcp", patchAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer l.Close()
+	log.Printf("Listening on %s", patchAddr)
+	for {
+		// Wait for connection
+		conn, err := l.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Handle Connection, Print Contents
+		go func(c net.Conn) {
+			defer c.Close()
+			raddr, _, _ := net.SplitHostPort(c.RemoteAddr().String())
+			log.Printf("%v", c)
+			workingConnection := &patchserver.PatchClient{
+				Core:      &core.CoreClient{},
+				IpAddress: net.ParseIP(raddr),
+				Patch:     0,
+			}
+			log.Printf("Incoming connection from: %s", c.RemoteAddr().String())
+			patchserver.StartEncryption(workingConnection)
+			log.Print(workingConnection.IpAddress, workingConnection.Patch)
+
+			for {
+				buff := make([]byte, 4096)
+				c.Read(buff)
+				log.Print(buff)
+				log.Print("Doing stufF!")
+				log.Print("Heeeeey")
+				//log.Print(b)
+				log.Printf("%v", c)
+				break
+				// if b[0] == 97 {
+				// 	log.Print("Closing")
+				// 	c.Close()
+				// 	break
+				// }
+				// if b == "bye" || b == "bye\n" {
+				// 	fmt.Println("Okay, bye")
+				// 	log.Print("Closed connection.")
+				// 	c.Close()
+				// 	break
+				// }
+			}
+			// p := make([]byte, 100)
+			//io.Copy(c, c)
+			// c.Read(p)
+			// log.Print(p)
+			//handle(c)
+
+		}(conn)
+	}
+
+}
+
+func handle(c net.Conn) {
+	//defer c.Close()
+
+	// data, _ := bufio.NewReader(c).ReadBytes('\n')
+	// fmt.Println(data)
+	for {
+		b, _ := bufio.NewReader(c).ReadString('\n')
+		log.Print(b)
+		fmt.Print(b)
+		if b == "bye" {
+			fmt.Println("Okay, bye")
+			log.Print("Closed connection.")
+		}
+
+	}
 
 }

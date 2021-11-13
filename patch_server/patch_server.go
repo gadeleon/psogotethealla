@@ -24,7 +24,7 @@ import (
 	"net"
 	"path/filepath"
 
-	"github.com/gadeleon/psogotethealla/client"
+	core "github.com/gadeleon/psogotethealla/client"
 )
 
 const (
@@ -39,11 +39,12 @@ const (
 	TCP_BUFFER_SIZE                = 65530
 	SOCKET_ERROR                   = -1
 	MAX_SIMULTANEOUS_CONNECTIONS   = 6
+	SEND_PACKET_02                 = 0x00
 )
 
-type PatchServer interface {
-	Serve()
-}
+// type PatchServer interface {
+// 	Serve()
+// }
 
 // "Encyption Data Struct"
 // TODO: Find out on what this actually does
@@ -121,12 +122,13 @@ type ClientData struct {
 
 // Extension of Core client for patch server
 type PatchClient struct {
-	Core    *client.CoreClient
-	patch   int32
+	Core    *core.CoreClient
+	Patch   int32
 	peekbuf [8]uint8 // kill for golang?
 	//  uint8_t rcvbuf [TCP_BUFFER_SIZE] is used in C, is this the same?
 	// kill packet buffers for golang?
 	rcvbuf, decryptbuf, sndbuf, encryptbuf, packet [TCP_BUFFER_SIZE]uint8
+	snddata, sndwritten                            int32
 	// PacketData/PacketRead... are these server or client?
 	packetData, packetRead                         uint16
 	serverCipher, clientCipher                     CryptSetup
@@ -147,10 +149,9 @@ type PatchClient struct {
 	patchSteps  uint32
 	// May change this to net.IP type
 	// Depends on what windows client sends
-	IpAdress [16]uint8
+	//IpAdress [16]uint8
+	IpAddress net.IP
 }
-
-var Crypt_PC_GetNextKey func(c *CryptSetup) uint32
 
 func sendToServer(sock int, packet []byte) error {
 	log.Print("Sending to patch server...")
@@ -196,4 +197,16 @@ func parseIPString(ip string) (net.IP, error) {
 // Simple func to convert int of bytes into KB
 func KBToBytes(bytes int) int {
 	return bytes * 1024
+}
+
+// Rather than a global variable, will make a getter
+// for the packet
+func GetPacket02() []uint8 {
+	return []uint8{
+		0x4C, 0x00, 0x02, 0x00, 0x50, 0x61, 0x74, 0x63, 0x68, 0x20, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72,
+		0x2E, 0x20, 0x43, 0x6F, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68, 0x74, 0x20, 0x53, 0x6F, 0x6E, 0x69,
+		0x63, 0x54, 0x65, 0x61, 0x6D, 0x2C, 0x20, 0x4C, 0x54, 0x44, 0x2E, 0x20, 0x32, 0x30, 0x30, 0x31,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x2D, 0x69, 0x06, 0x9E, 0xDC, 0xE0, 0x6F, 0xCA}
+
 }
